@@ -9,7 +9,6 @@ int main() {
     std::cout << "Enter your password: " << std::endl;
     std::string pass = password::read_password();
 
-    std::cout << "User: " << user << "\nPass: " << pass << std::endl;
+    std::cout << "User: \"" << user << "\"" << "\nPass: \"" << pass << "\"" << std::endl;
     return 0; 
 }
-
