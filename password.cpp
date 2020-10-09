@@ -7,7 +7,7 @@ int main() {
     std::cin >> user;
 
     std::cout << "Enter your password: " << std::endl;
-    std::string pass = read_password();
+    std::string pass = password::read_password();
 
     std::cout << "User: " << user << "\nPass: " << pass << std::endl;
     return 0; 

@@ -1,35 +1,79 @@
-#include <unistd.h>
 #include <stdio.h>  
 #include <vector>
 #include <iostream>
 #include <climits>
 
-std::string read_password()
+#ifdef WIN32
+#include <windows.h>
+#else
+#include <termios.h>
+#include <unistd.h>
+#endif
+
+namespace password
 {
-    std::vector<char> v;
-    std::cin.ignore(1);
-    system("stty raw -echo"); 
+    void SetStdinEcho(bool enable=true)
+    {
+    #ifdef WIN32
+        HANDLE hStdin = GetStdHandle(STD_INPUT_HANDLE);
+        DWORD mode;
+        GetConsoleMode(hStdin, &mode);
 
-    char input;
-    while(1) {
-        input = getchar(); 
+        if (!enable)
+            mode &= ~ENABLE_ECHO_INPUT;
+        else
+            mode |= ENABLE_ECHO_INPUT;
 
-        if (input == '\r') { // Carriage return
-            break;
-        } else if (input == 127) { // Backspace
-            v.pop_back();
-            printf("\b \b"); // Erase last '*'
-            continue;
+        SetConsoleMode(hStdin, mode);
+
+    #else
+        struct termios tty;
+        tcgetattr(STDIN_FILENO, &tty);
+        if (!enable) {
+            tty.c_lflag &= ~ICANON;
+            tty.c_lflag &= ~ECHO;
+        }
+        else {
+            tty.c_lflag |= ICANON;
+            tty.c_lflag |= ECHO;
         }
 
-        v.push_back(input);
-        printf("*");
+        (void)tcsetattr(STDIN_FILENO, TCSANOW, &tty);
+    #endif
     }
 
-    system("stty cooked"); 
-    printf("\n");
+    std::string read_password()
+    {
+        // The most recent character was a newline and might be
+        // rendered as '*', so flush the input buffer before any
+        // rendering to remove this.
+        std::cin.clear();       
+        std::cin.ignore(INT_MAX, '\n');
 
-    std::string str(v.begin(), v.end());
-    return str; 
+        SetStdinEcho(false); // Prevent input from rendering
+        
+        std::vector<char> v;
+        
+        char input;
+        while(1) {
+            input = getchar(); 
+
+            if (input == '\r' || input  == '\n') { // Carriage return
+                break;
+            } else if (input == 127) { // Backspace
+                v.pop_back();
+                printf("\b \b"); // Erase last '*'
+                continue;
+            }
+
+            v.push_back(input);
+            printf("*");
+        }
+        
+        SetStdinEcho(true); // Re-enable input rendering
+        printf("\n");
+
+        return std::string(v.begin(), v.end()); 
+    }
 }
 
