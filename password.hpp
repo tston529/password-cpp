@@ -2,6 +2,7 @@
 #include <vector>
 #include <iostream>
 #include <climits>
+// #include <stropts.h>
 
 #ifdef WIN32
 #include <windows.h>
@@ -33,7 +34,7 @@ namespace password
             }
         }       
         else
-            mode |= (ENABLE_ECHO_INPUT | ENABLE_LINE_INPUT);
+            mode |= (ENABLE_ECHO_INPUT | ENABLE_LINE_INPUT | ENABLE_VIRTUAL_TERMINAL_PROCESSING);
             
 
         SetConsoleMode(hStdin, mode); 
@@ -55,20 +56,15 @@ namespace password
 
     std::string read_password()
     {
-        // The most recent character was a newline and might be
-        // rendered as '*', so flush the input buffer before any
-        // rendering to remove this.
-        std::cin.clear();       
-        std::cin.ignore(INT_MAX, '\n');
-
         int use_asterisks = SetStdinEcho(false); // Prevent input from rendering
-        
         if (use_asterisks != -1) {
+            std::cin >> std::skipws;
             std::vector<char> v;
 
             char input;
             while (1) {
                 input = getchar();
+                // std::cerr <<"input: "<< (int)input << std::endl;
 
                 if (input == '\r' || input == '\n') { // Carriage return
                     break;
@@ -80,15 +76,16 @@ namespace password
                 }
 
                 v.push_back(input);
-                printf("*");
+                fprintf(stderr, "*");
             }
 
             SetStdinEcho(true); // Re-enable input rendering
-            printf("\n");
+            printf("\x1b[0G");
 
             return std::string(v.begin(), v.end());
         }
 
+        SetStdinEcho(true); // Re-enable input rendering
         std::string input;
         std::cin >> input;
         return input;

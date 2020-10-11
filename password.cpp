@@ -1,14 +1,18 @@
 #include <iostream> 
 #include "password.hpp"
 
-int main() { 
-    std::cout << "Enter your username: " << std::endl;
-    std::string user;
-    std::cin >> user;
+int main(int argc, char ** argv) {
+    // used for quick testing how it handles previous
+    // input via std::cin or scanf() 
+    // (not well, without cin.ignore() to handle the extra newline
+    // character, where getline works perfectly)
+    if (argc > 1) { 
+        std::string user;
+        std::getline(std::cin, user);
+        std::cout << "User: " << user << std::endl;
+        // std::cin.ignore(10000, '\n');
+    }
 
-    std::cout << "Enter your password: " << std::endl;
-    std::string pass = password::read_password();
-
-    std::cout << "User: \"" << user << "\"" << "\nPass: \"" << pass << "\"" << std::endl;
+    std::cout << password::read_password() << std::endl;
     return 0; 
 }
