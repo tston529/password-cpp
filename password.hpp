@@ -69,9 +69,11 @@ namespace password
                 if (input == '\r' || input == '\n') { // Carriage return
                     break;
                 }
-                else if (input == 127 || input == '\b') { // Backspace
+                else if (v.size() > 0 && input == 127 || input == '\b') { // Backspace
                     v.pop_back();
-                    printf("\b \b"); // Erase last '*'
+                    fprintf(stderr, "\b \b"); // Erase last '*'
+                    continue;
+                } else if (v.size() == 0 && input == 127 || input == '\b') {
                     continue;
                 }
 
@@ -80,7 +82,7 @@ namespace password
             }
 
             SetStdinEcho(true); // Re-enable input rendering
-            printf("\x1b[0G");
+            fprintf(stderr, "\x1b[0G");
 
             return std::string(v.begin(), v.end());
         }
